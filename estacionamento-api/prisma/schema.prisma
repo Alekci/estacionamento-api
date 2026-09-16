@@ -1,0 +1,52 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model bilhete {
+  id_bilhete           Int       @id @default(autoincrement())
+  hora_entrada_bilhete DateTime  @db.DateTime(0)
+  hora_saida_bilhete   DateTime? @db.DateTime(0)
+  valor_bilhete        Decimal?  @db.Decimal(4, 2)
+  status_bilhete       String    @db.VarChar(45)
+  Veiculo_id_veiculo   Int
+  Vaga_id_vaga         Int
+  vaga                 vaga      @relation(fields: [Vaga_id_vaga], references: [id_vaga], onDelete: NoAction, onUpdate: NoAction, map: "fk_Bilhete_Vaga1")
+  veiculo              veiculo   @relation(fields: [Veiculo_id_veiculo], references: [id_veiculo], onDelete: NoAction, onUpdate: NoAction, map: "fk_Bilhete_Veiculo1")
+
+  @@index([Vaga_id_vaga], map: "fk_Bilhete_Vaga1_idx")
+  @@index([Veiculo_id_veiculo], map: "fk_Bilhete_Veiculo1_idx")
+}
+
+model cliente {
+  id_cliente       Int       @id @default(autoincrement())
+  nome_cliente     String    @db.VarChar(45)
+  cpf_cliente      String    @unique(map: "cpf_cliente_UNIQUE") @db.VarChar(45)
+  telefone_cliente String    @db.VarChar(45)
+  endereco_cliente String    @db.VarChar(100)
+  veiculo          veiculo[]
+}
+
+model vaga {
+  id_vaga     Int       @id @default(autoincrement())
+  numero_vaga Int
+  tipo_vaga   String    @db.VarChar(45)
+  bilhete     bilhete[]
+}
+
+model veiculo {
+  id_veiculo           Int       @id @default(autoincrement())
+  placa_veiculo        String    @unique(map: "placa_veiculo_UNIQUE") @db.VarChar(7)
+  marca_modelo_veiculo String?   @db.VarChar(45)
+  cor_veiculo          String?   @db.VarChar(45)
+  Cliente_id_cliente   Int
+  bilhete              bilhete[]
+  cliente              cliente   @relation(fields: [Cliente_id_cliente], references: [id_cliente], onDelete: NoAction, onUpdate: NoAction, map: "fk_Veiculo_Cliente")
+
+  @@index([Cliente_id_cliente], map: "fk_Veiculo_Cliente_idx")
+}
