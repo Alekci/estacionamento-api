@@ -1,0 +1,231 @@
+<div class="ml-64">
+  <app-header title="Bilhetes" subtitle="Check-in, check-out e histórico"></app-header>
+
+  <main class="p-8">
+    <!-- Barra de ações e abas -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex gap-2 bg-gray-100 p-1 rounded-lg">
+        <button
+          (click)="aba.set('abertos')"
+          [class.bg-white]="aba() === 'abertos'"
+          [class.shadow-sm]="aba() === 'abertos'"
+          class="px-5 py-2 rounded-md text-sm font-medium transition"
+        >
+          🔴 Abertos ({{ abertos().length }})
+        </button>
+        <button
+          (click)="aba.set('finalizados')"
+          [class.bg-white]="aba() === 'finalizados'"
+          [class.shadow-sm]="aba() === 'finalizados'"
+          class="px-5 py-2 rounded-md text-sm font-medium transition"
+        >
+          ✅ Finalizados ({{ finalizados().length }})
+        </button>
+      </div>
+
+      <button
+        (click)="abrirCheckIn()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition"
+      >
+        + Novo Check-in
+      </button>
+    </div>
+
+    <!-- Tabela -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">#</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Veículo</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Proprietário</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Vaga</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Entrada</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Saída</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Valor</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (b of bilhetesExibidos; track b.id_bilhete) {
+            <tr class="hover:bg-gray-50 transition">
+              <td class="px-6 py-4 text-sm text-gray-500">#{{ b.id_bilhete }}</td>
+              <td class="px-6 py-4">
+                <div>
+                  <p class="font-mono font-bold text-sm">{{ b.veiculo?.placa_veiculo }}</p>
+                  <p class="text-xs text-gray-500">{{ b.veiculo?.marca_modelo_veiculo ?? '—' }}</p>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-700">
+                {{ b.veiculo?.cliente?.nome_cliente ?? '—' }}
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-sm font-bold bg-gray-100 px-2 py-1 rounded">
+                  #{{ b.vaga?.numero_vaga }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ formatarData(b.hora_entrada_bilhete) }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600">{{ formatarData(b.hora_saida_bilhete) }}</td>
+              <td class="px-6 py-4">
+                @if (b.valor_bilhete) {
+                  <span class="text-sm font-bold text-green-700">{{ formatarValor(b.valor_bilhete) }}</span>
+                } @else {
+                  <span class="text-xs text-gray-400">Em aberto</span>
+                }
+              </td>
+              <td class="px-6 py-4 text-right">
+                @if (b.status_bilhete === 'Ocupado') {
+                  <button
+                    (click)="abrirCheckOut(b)"
+                    class="bg-orange-500 hover:bg-orange-600 text-white text-sm px-3 py-1.5 rounded-lg font-medium transition"
+                  >
+                    Check-out
+                  </button>
+                } @else {
+                  <button
+                    (click)="confirmarDelete(b)"
+                    class="text-red-600 hover:text-red-800 font-medium text-sm"
+                  >
+                    Excluir
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="px-6 py-12 text-center text-gray-400">
+                Nenhum bilhete {{ aba() === 'abertos' ? 'aberto' : 'finalizado' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Check-in -->
+<app-modal
+  [isOpen]="modalCheckIn"
+  title="Novo Check-in"
+  (close)="modalCheckIn = false"
+>
+  <form [formGroup]="formCheckIn" (ngSubmit)="fazerCheckIn()" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Veículo *</label>
+      <select
+        formControlName="Veiculo_id_veiculo"
+        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option [ngValue]="null" disabled>Selecione um veículo</option>
+        @for (v of veiculos(); track v.id_veiculo) {
+          <option [ngValue]="v.id_veiculo">
+            {{ v.placa_veiculo }} — {{ v.marca_modelo_veiculo ?? 'Sem modelo' }} ({{ v.cliente?.nome_cliente }})
+          </option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Vaga *</label>
+      <select
+        formControlName="Vaga_id_vaga"
+        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option [ngValue]="null" disabled>Selecione uma vaga</option>
+        @for (v of vagasDisponiveis(); track v.id_vaga) {
+          <option [ngValue]="v.id_vaga">
+            Vaga #{{ v.numero_vaga }} — {{ v.tipo_vaga }}
+          </option>
+        }
+      </select>
+      @if (vagasDisponiveis().length === 0) {
+        <p class="text-red-500 text-xs mt-2">Nenhuma vaga disponível no momento</p>
+      }
+    </div>
+
+    <div class="flex gap-3 pt-4">
+      <button
+        type="button"
+        (click)="modalCheckIn = false"
+        class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="formCheckIn.invalid"
+        class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
+      >
+        Fazer Check-in
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<!-- Modal Check-out -->
+<app-modal
+  [isOpen]="modalCheckOut"
+  title="Check-out"
+  (close)="modalCheckOut = false"
+>
+  @if (bilheteSelecionado) {
+    <div class="bg-gray-50 rounded-lg p-4 mb-4 space-y-2">
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-600">Veículo:</span>
+        <span class="font-mono font-bold">{{ bilheteSelecionado.veiculo?.placa_veiculo }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-600">Vaga:</span>
+        <span class="font-bold">#{{ bilheteSelecionado.vaga?.numero_vaga }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-600">Entrada:</span>
+        <span class="font-medium">{{ formatarData(bilheteSelecionado.hora_entrada_bilhete) }}</span>
+      </div>
+    </div>
+
+    <form [formGroup]="formCheckOut" (ngSubmit)="fazerCheckOut()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Valor manual (opcional)
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          formControlName="valor_bilhete"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Deixe em branco para calcular automaticamente"
+        />
+        <p class="text-xs text-gray-500 mt-1">
+          Se não informado, o valor será calculado como R$ 8/hora.
+        </p>
+      </div>
+
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          (click)="modalCheckOut = false"
+          class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition"
+        >
+          Confirmar Check-out
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>
+
+<app-confirm-dialog
+  [isOpen]="confirmAberto"
+  title="Remover bilhete?"
+  [message]="'Tem certeza que deseja remover o bilhete #' + (bilheteParaDeletar?.id_bilhete ?? '') + '?'"
+  confirmText="Sim, remover"
+  (confirmed)="deletar()"
+  (cancelled)="confirmAberto = false"
+></app-confirm-dialog>
