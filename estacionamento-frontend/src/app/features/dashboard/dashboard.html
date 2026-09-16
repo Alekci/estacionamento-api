@@ -1,0 +1,96 @@
+<div class="ml-64">
+  <app-header title="Dashboard" subtitle="Visão geral do estacionamento"></app-header>
+
+  <main class="p-8">
+    <!-- Cards principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Total de Vagas</p>
+            <p class="text-3xl font-bold text-gray-900">{{ totalVagas() }}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+            🅿️
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Vagas Ocupadas</p>
+            <p class="text-3xl font-bold text-red-600">{{ vagasOcupadas() }}</p>
+          </div>
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl">
+            🚗
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Vagas Livres</p>
+            <p class="text-3xl font-bold text-green-600">{{ vagasDisponiveis() }}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+            ✅
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-500 mb-1">Faturamento Hoje</p>
+            <p class="text-3xl font-bold text-green-600">
+              R$ {{ faturamentoHoje().toFixed(2) }}
+            </p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+            💰
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards secundários -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-6 text-white">
+        <p class="text-sm opacity-90 mb-1">Clientes Cadastrados</p>
+        <p class="text-4xl font-bold">{{ totalClientes() }}</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-6 text-white">
+        <p class="text-sm opacity-90 mb-1">Veículos Cadastrados</p>
+        <p class="text-4xl font-bold">{{ totalVeiculos() }}</p>
+      </div>
+
+      <div class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl p-6 text-white">
+        <p class="text-sm opacity-90 mb-1">Bilhetes em Aberto</p>
+        <p class="text-4xl font-bold">{{ bilhetesAbertos() }}</p>
+      </div>
+    </div>
+
+    <!-- Barra de ocupação -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Taxa de Ocupação</h3>
+
+      <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div
+          class="bg-gradient-to-r from-green-500 to-red-500 h-full transition-all duration-500"
+          [style.width.%]="totalVagas() ? (vagasOcupadas() / totalVagas()) * 100 : 0"
+        ></div>
+      </div>
+
+      <div class="flex justify-between mt-3 text-sm text-gray-600">
+        <span>{{ vagasOcupadas() }} ocupadas</span>
+        <span class="font-bold">
+          {{ totalVagas() ? ((vagasOcupadas() / totalVagas()) * 100).toFixed(1) : 0 }}%
+        </span>
+        <span>{{ vagasDisponiveis() }} livres</span>
+      </div>
+    </div>
+  </main>
+</div>
